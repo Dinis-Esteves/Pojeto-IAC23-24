@@ -38,7 +38,7 @@
 
 #Input D
 n_points:    .word 30
-points:      .word 16, 1, 17, 2, 18, 6, 20, 3, 21, 1, 17, 4, 21, 7, 16, 4, 21, 6, 19, 6, 4, 24, 6, 24, 8, 23, 6, 26, 6, 26, 6, 23, 8, 25, 7, 26, 7, 20, 4, 21, 4, 10, 2, 10, 3, 11, 2, 12, 4, 13, 4, 9, 4, 9, 3, 8, 0, 10, 4, 10
+points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
@@ -71,8 +71,9 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
  
 .text
     # Chama funcao principal da 1a parte do projeto
-    jal mainSingleCluster
-
+    #jal mainSingleCluster
+    jal cleanScreen
+    jal printClusters
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
     
@@ -110,7 +111,31 @@ printPoint:
 # Retorno: nenhum
 
 cleanScreen:
-    # POR IMPLEMENTAR (1a parte)
+# s0 (Primeiro ponto) | s1 (Ultimo Ponto) | s2 (Cor preta)
+    
+    # push das variaveis usadas para o stack
+    addi sp, sp, -8
+    sw s0, (0)sp
+    sw s1, (4)sp
+    sw s2, (8)sp
+    
+    # carrega os valores para as variaveis
+    li s0, LED_MATRIX_0_BASE
+    li s1, LED_MATRIX_0_SIZE
+    add s1, s0, s1
+    li s2, white
+    
+    clean_loop:
+        sw s2, (0)s0                # pinta de branco
+        addi s0, s0, 4              # anda um ponto para a frente
+        ble s0, s1, clean_loop      # verifica se chagamos ao fim
+    
+    # pop das variaveis
+    lw s2, (8)sp
+    lw s1, (4)sp
+    lw s0, (0)sp
+    addi sp, sp, 8
+    
     jr ra
 
     
@@ -121,6 +146,26 @@ cleanScreen:
 
 printClusters:
     # POR IMPLEMENTAR (1a e 2a parte)
+    
+        addi sp, sp, -4
+        sw ra, 0(sp)
+        
+        lw a2, colors
+        
+        la t0, points
+        li t4, 0
+        lw t1, n_points
+    loop:
+        lw a0, 0(t0)
+        lw a1, 4(t0)
+        jal printPoint
+        addi t4, t4, 1
+        addi t0, t0, 8
+        bne t1, t4, loop
+        
+        lw ra, 0(sp)
+        addi sp, sp, 4
+        
     jr ra
 
 
@@ -157,7 +202,7 @@ mainSingleCluster:
 
     #2. cleanScreen
     # POR IMPLEMENTAR (1a parte)
-
+    jal cleanScreen
     #3. printClusters
     # POR IMPLEMENTAR (1a parte)
 
