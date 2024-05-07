@@ -43,7 +43,7 @@ points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4
 
 
 # Valores de centroids e k a usar na 1a parte do projeto:
-centroids:   .word 0,0
+centroids:   .word 0,0 
 k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
@@ -71,9 +71,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
  
 .text
     # Chama funcao principal da 1a parte do projeto
-    #jal mainSingleCluster
-    jal cleanScreen
-    jal printClusters
+    jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
     
@@ -114,7 +112,7 @@ cleanScreen:
 # s0 (Primeiro ponto) | s1 (Ultimo Ponto) | s2 (Cor preta)
     
     # push das variaveis usadas para o stack
-    addi sp, sp, -8
+    addi sp, sp, -12
     sw s0, (0)sp
     sw s1, (4)sp
     sw s2, (8)sp
@@ -134,7 +132,7 @@ cleanScreen:
     lw s2, (8)sp
     lw s1, (4)sp
     lw s0, (0)sp
-    addi sp, sp, 8
+    addi sp, sp, 12
     
     jr ra
 
@@ -146,23 +144,32 @@ cleanScreen:
 
 printClusters:
     # POR IMPLEMENTAR (1a e 2a parte)
-    
+        
+        # guarda no stack
         addi sp, sp, -4
         sw ra, 0(sp)
         
+        # inicia as variaveis
         lw a2, colors
-        
         la t0, points
-        li t4, 0
+        li t4, 0    # iterator i
         lw t1, n_points
-    loop:
+        
+    loop_printClusters:
+        # lode do x e do y
         lw a0, 0(t0)
         lw a1, 4(t0)
+        
+        # printa o ponto
         jal printPoint
+        
+        # atualiza iterador e o addres
         addi t4, t4, 1
         addi t0, t0, 8
-        bne t1, t4, loop
         
+        bne t1, t4, loop_printClusters
+        
+        # pop das variaveis
         lw ra, 0(sp)
         addi sp, sp, 4
         
@@ -176,7 +183,35 @@ printClusters:
 # Retorno: nenhum
 
 printCentroids:
-    # POR IMPLEMENTAR (1a e 2a parte)
+    
+        # push das variaveis
+        addi sp, sp, -4
+        sw ra, 0(sp)
+        
+        # inicializar variaveis
+        li a2, black        
+        la t0, centroids
+        li t4, 0 # iterador i
+        lw t1, k
+        
+    loop_printCentroids:
+        # load de x e y
+        lw a0, 0(t0)
+        lw a1, 4(t0)
+        
+        # printa o ponto
+        jal printPoint
+        
+        # atualiza as variaveis
+        addi t4, t4, 1
+        addi t0, t0, 8
+        
+        bne t1, t4, loop_printCentroids
+        
+        # pop das variaveis
+        lw ra, 0(sp)
+        addi sp, sp, 4
+        
     jr ra
     
 
@@ -187,6 +222,37 @@ printCentroids:
 
 calculateCentroids:
     # POR IMPLEMENTAR (1a e 2a parte)
+    
+    # inicia variaveis
+    la t0, points
+    lw t1, n_points
+    li t2, 0 # iterador i
+    
+    loop_calculateCentroids:
+        
+        # push das variaveis
+        lw t3, 0(t0)
+        lw t4, 4(t0)
+        
+        # adiciona o x e o y atuais às variaveis de soma
+        add t5, t5, t3
+        add t6, t6, t4
+        
+        # atualiza contador e addres
+        addi t0, t0, 8
+        addi t2, t2, 1
+        
+        bne t2, t1, loop_calculateCentroids
+        
+    # divide pelo numero de pontos ( aka medias)
+    div t5, t5, t1
+    div t6, t6, t1
+    
+    # atualiza o vetor centroids
+    la t2, centroids
+    sw t5, 0(t2)
+    sw t6, 4(t2)
+    
     jr ra
 
 
@@ -196,22 +262,29 @@ calculateCentroids:
 # Retorno: nenhum
 
 mainSingleCluster:
+    
+    addi sp, sp, -4
+    sw ra, 0(sp)
 
     #1. Coloca k=1 (caso nao esteja a 1)
     # POR IMPLEMENTAR (1a parte)
-
+    
     #2. cleanScreen
     # POR IMPLEMENTAR (1a parte)
     jal cleanScreen
     #3. printClusters
     # POR IMPLEMENTAR (1a parte)
-
+    jal printClusters
     #4. calculateCentroids
     # POR IMPLEMENTAR (1a parte)
-
+    jal calculateCentroids
     #5. printCentroids
     # POR IMPLEMENTAR (1a parte)
-
+    jal printCentroids
+    
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    
     #6. Termina
     jr ra
 
