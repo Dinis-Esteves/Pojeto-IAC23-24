@@ -29,26 +29,26 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-#n_points:    .word 5
-#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+n_points:    .word 5
+points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+#n_points:    .word 30
+#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
 # Valores de centroids e k a usar na 1a parte do projeto:
-centroids:   .word 0,0 
-k:           .word 1
+#centroids:   .word 0,0 
+#k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-#centroids:   .word 0,0, 10,0, 0,10
-#k:           .word 3
+centroids:   .word 0,0, 10,0, 0,10
+k:           .word 3
 #L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
@@ -289,6 +289,63 @@ mainSingleCluster:
     jr ra
 
 
+### initializeCentroids
+# Inicializa os valores iniciais do vetor 𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑𝑠
+# Argumentos:
+# a0, a1: k, endereço do vetor centroids
+# Retorno: nenhum
+
+initializeCentroids:
+    
+    # push s0, s1 e s2
+    addi sp, sp, -12
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    
+    # Passa os argumentos para s0 e s1 & inicializa s2 a 32
+    add s0, a0, x0
+    add s1, a1, x0
+    li s2, 32
+
+    loop_initCentroids:
+        # coloca em a0 e a1 valores do epoch (low e high, repetivamente)
+        addi a7, x0, 30
+        ecall
+    
+        # valor random de x
+        rem t0, a0, s2
+    
+        # Salva x no vetor centroids
+        sw t0, 0(s1)
+    
+        # coloca em a0 e a1 valores do epoch (low e high, repetivamente)
+        addi a7, x0, 30
+        ecall
+        srli a0, a0, 2   
+    
+        #valor random de y
+        rem t0, a0, s2 
+    
+        # Salva y no vetor centroids
+        sw t0, 4(s1)
+    
+        # Anda em uma coordenada (2 indices) no vetor centroids
+        addi s1, s1, 8
+    
+        # decrementa k
+        addi s0, s0, -1
+    
+        # caso ainda não tenha feito para todos os k's repete
+        bne s0, x0, loop_initCentroids
+    
+    # pop
+    lw s2, 8(sp)
+    lw s1, 4(sp)
+    lw s0, 0(sp)
+    addi sp, sp, 12
+    
+    jr ra 
 
 ### manhattanDistance
 # Calcula a distancia de Manhattan entre (x0,y0) e (x1,y1)
