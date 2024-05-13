@@ -2,12 +2,12 @@
 # IAC 2023/2024 k-means
 # 
 # Grupo:
-# Campus:
+# Campus: Taguspark
 #
 # Autores:
-# n_aluno, nome
-# n_aluno, nome
-# n_aluno, nome
+# 103258, Ana Caldeira
+# 110321, Tiago Fernandes
+# 109280, Dinis Esteves
 #
 # Tecnico/ULisboa
 
