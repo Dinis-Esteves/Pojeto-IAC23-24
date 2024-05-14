@@ -29,26 +29,26 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-#n_points:    .word 5
-#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+n_points:    .word 5
+points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+#n_points:    .word 30
+#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
 # Valores de centroids e k a usar na 1a parte do projeto:
-centroids:   .word 0,0 
-k:           .word 1
+#centroids:   .word 0,0 
+#k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-#centroids:   .word 0,0, 10,0, 0,10
-#k:           .word 3
+centroids:   .word 0,0, 10,0, 0,10
+k:           .word 3
 #L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
@@ -70,11 +70,9 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # Codigo
  
 .text
-    jal cleanScreen
     # Chama funcao principal da 1a parte do projeto
-    jal mainSingleCluster
+    #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
-    jal cleanPoints
     #jal mainKMeans
     
     #Termina o programa (chamando chamada sistema)
@@ -324,11 +322,20 @@ calculateCentroids:
 
 mainSingleCluster:
     
-    addi sp, sp, -4
+    addi sp, sp, -8
     sw ra, 0(sp)
 
     #1. Coloca k=1 (caso nao esteja a 1)
     # POR IMPLEMENTAR (1a parte)
+    
+    # guardar o valor anterior de k
+    la s0, k
+    lw t0, 0(s0)
+    sw t0, 4(sp)
+    
+    # colocar k a 1
+    li t0, 1
+    sw t0, 0(s0)
     
     #2. cleanScreen
     # POR IMPLEMENTAR (1a parte)
@@ -343,12 +350,15 @@ mainSingleCluster:
     # POR IMPLEMENTAR (1a parte)
     jal printCentroids
     
+    lw t0, 4(sp)
     lw ra, 0(sp)
-    addi sp, sp, 4
+    addi sp, sp, 8
+    
+    # recolocar o valor de k
+    sw t0, 0(s0)
     
     #6. Termina
     jr ra
-
 
 ### initializeCentroids
 # Inicializa os valores iniciais do vetor 𝑐𝑒𝑛𝑡𝑟𝑜𝑖𝑑𝑠
@@ -408,6 +418,13 @@ initializeCentroids:
     
     jr ra 
 
+abs:
+    bltz a0, is_negative  # se a0 < 0, salta para 'is_negative'
+    jr ra
+is_negative:
+    neg a0, a0            # se a0 < 0, retorna -a0
+    jr ra
+
 ### manhattanDistance
 # Calcula a distancia de Manhattan entre (x0,y0) e (x1,y1)
 # Argumentos:
@@ -418,6 +435,25 @@ initializeCentroids:
 
 manhattanDistance:
     # POR IMPLEMENTAR (2a parte)
+    
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    sub t0, a0, a2
+    sub t1, a1, a3
+    
+    mv  a0, t0
+    jal abs
+    mv t0, a0
+    
+    mv  a0, t1
+    jal abs
+    
+    add a0, a0, t0
+    
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    
     jr ra
 
 
