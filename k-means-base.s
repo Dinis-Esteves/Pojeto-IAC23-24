@@ -74,6 +74,11 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
     #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
+    jal cleanScreen
+    lw a0, k
+    la a1, centroids
+    jal initializeCentroids
+    jal printCentroids
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -383,7 +388,16 @@ initializeCentroids:
         # coloca em a0 e a1 valores do epoch (low e high, repetivamente)
         addi a7, x0, 30
         ecall
-    
+        
+        mv a3, a0
+        
+        addi a7, x0, 31
+        ecall
+        
+        rem a0, a3, a0
+        
+        slli a0, a0, 2
+        
         # valor random de x
         rem t0, a0, s2
     
@@ -393,7 +407,15 @@ initializeCentroids:
         # coloca em a0 e a1 valores do epoch (low e high, repetivamente)
         addi a7, x0, 30
         ecall
-        srli a0, a0, 2   
+        
+        mv a3, a0
+        
+        addi a7, x0, 31
+        ecall
+        
+        rem a0, a3, a0
+        
+        slli a0, a0, 2
     
         # valor random de y
         rem t0, a0, s2 
