@@ -1,7 +1,7 @@
 #
 # IAC 2023/2024 k-means
 # 
-# Grupo:
+# Grupo: 21
 # Campus: Taguspark
 #
 # Autores:
@@ -29,16 +29,16 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-n_points:    .word 5
-points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+#n_points:    .word 5
+#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-#n_points:    .word 30
-#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+n_points:    .word 30
+points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
@@ -47,7 +47,7 @@ points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 #k:           .word 1
 
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
-centroids:   .word 0,0, 10,0, 0,10
+centroids:   .word 0,0, 0, 20, 0,10
 k:           .word 3
 #L:           .word 10
 
@@ -55,7 +55,9 @@ k:           .word 3
 # que o grupo considere necessarias para a solucao:
 #clusters:    
 
-
+# Vetor auxiliar para a função nearest cluster,
+#guarda a distância de um punto aos centroids
+distToClus:    .word 0, 0, 0
 
 
 #Definicoes de cores a usar no projeto 
@@ -74,11 +76,13 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
     #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
+    li a0, 16
+    li a1, 16
     jal cleanScreen
-    lw a0, k
-    la a1, centroids
-    jal initializeCentroids
-    jal printCentroids
+    jal nearestCluster
+    
+    
+    
     
     #Termina o programa (chamando chamada sistema)
     li a7, 10
@@ -114,7 +118,7 @@ printPoint:
 # Retorno: nenhum
 
 cleanScreen:
-# s0 (Primeiro ponto) | s1 (Ultimo Ponto) | s2 (Cor preta)
+# s0 (Primeiro ponto) | s1 (Ultimo Ponto) | s2 (Cor branca)
     
     # push das variaveis usadas para o stack
     addi sp, sp, -12
@@ -220,14 +224,14 @@ printClusters:
         lw t1, n_points
         
     loop_printClusters:
-        # lode do x e do y
+        # load do x e do y
         lw a0, 0(t0)
         lw a1, 4(t0)
         
         # printa o ponto
         jal printPoint
         
-        # atualiza iterador e o addres
+        # atualiza iterador e a address
         addi t4, t4, 1
         addi t0, t0, 8
         
@@ -302,7 +306,7 @@ calculateCentroids:
         add t5, t5, t3
         add t6, t6, t4
         
-        # atualiza contador e addres
+        # atualiza contador e address
         addi t0, t0, 8
         addi t2, t2, 1
         
@@ -374,10 +378,12 @@ mainSingleCluster:
 initializeCentroids:
     
     # push s0, s1 e s2
-    addi sp, sp, -12
+    addi sp, sp, -20
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
+    sw a3, 12(sp)
+    sw t0, 16(sp)
     
     # Passa os argumentos para s0 e s1 & inicializa s2 a 32
     add s0, a0, x0
@@ -433,10 +439,12 @@ initializeCentroids:
         bne s0, x0, loop_initCentroids
     
     # pop
+    lw t0, 16(sp)
+    lw a3, 12(sp)
     lw s2, 8(sp)
     lw s1, 4(sp)
     lw s0, 0(sp)
-    addi sp, sp, 12
+    addi sp, sp, 20
     
     jr ra 
 
@@ -458,13 +466,14 @@ is_negative:
 manhattanDistance:
     # POR IMPLEMENTAR (2a parte)
     
-    addi sp, sp, -4
+    addi sp, sp, -16
     sw ra, 0(sp)
+    sw t0, 4(sp)
+    sw t1, 8(sp)
     
-    sub t0, a0, a2
+    sub a0, a0, a2
     sub t1, a1, a3
     
-    mv  a0, t0
     jal abs
     mv t0, a0
     
@@ -473,8 +482,10 @@ manhattanDistance:
     
     add a0, a0, t0
     
+    lw t1, 8(sp)
+    lw t0, 4(sp)
     lw ra, 0(sp)
-    addi sp, sp, 4
+    addi sp, sp, 16
     
     jr ra
 
@@ -488,6 +499,51 @@ manhattanDistance:
 
 nearestCluster:
     # POR IMPLEMENTAR (2a parte)
+    # push
+    addi sp, sp, -28
+    sw ra, 0(sp)
+    sw t0, 4(sp)
+    sw t1, 8(sp)
+    sw t2, 12(sp)
+    sw t3, 16(sp)
+    sw s0, 20(sp)
+    sw s1, 24(sp)
+ 
+    
+    la t0, centroids
+    lw t1, k
+    li t2, 62           # maior distancia de manhattan possivel
+    li t3, 0            # iterator
+    li t4, 0            #guarda o valor de retorno
+    add s0, x0, a0
+    add s1, x0, a1
+    
+    loop_NearestCluster:
+        add a0, x0, s0
+        add a1, x0, s1
+        lw   a2, 0(t0)    # x do centroid
+        lw   a3, 4(t0)    # y do centroid
+        jal manhattanDistance
+        bgt  a0, t2, iterator
+        mv   t2, a0       # menor distancia ate ao momento
+        mv   t4, t3       # valor de retorno ate ao momento
+                
+        iterator:
+            addi t0, t0, 8
+            addi t3, t3, 1
+            bne t1, t3, loop_NearestCluster
+        
+        mv a0, t4
+        
+    # pop
+    lw s1, 24(sp)
+    lw s0, 20(sp)
+    lw t3, 16(sp)
+    lw t2, 12(sp)
+    lw t1, 8(sp)
+    lw t0, 4(sp)
+    lw ra, 0(sp)
+    addi sp, sp, 28
     jr ra
 
 
