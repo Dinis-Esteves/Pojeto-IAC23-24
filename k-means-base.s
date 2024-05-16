@@ -76,10 +76,11 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
     #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
-    li a0, 16
-    li a1, 16
+    lw a0, k
+    la a1, centroids
     jal cleanScreen
-    jal nearestCluster
+    jal initializeCentroids
+    jal printCentroids
     
     
     
@@ -383,7 +384,7 @@ initializeCentroids:
     sw s1, 4(sp)
     sw s2, 8(sp)
     sw a3, 12(sp)
-    sw t0, 16(sp)
+    sw ra, 26(sp)
     
     # Passa os argumentos para s0 e s1 & inicializa s2 a 32
     add s0, a0, x0
@@ -405,10 +406,12 @@ initializeCentroids:
         slli a0, a0, 2
         
         # valor random de x
-        rem t0, a0, s2
-    
+        rem a0, a0, s2
+        
+        jal abs 
+        
         # Salva x no vetor centroids
-        sw t0, 0(s1)
+        sw a0, 0(s1)
     
         # coloca em a0 e a1 valores do epoch (low e high, repetivamente)
         addi a7, x0, 30
@@ -424,10 +427,12 @@ initializeCentroids:
         slli a0, a0, 2
     
         # valor random de y
-        rem t0, a0, s2 
+        rem a0, a0, s2 
+    
+        jal abs 
     
         # Salva y no vetor centroids
-        sw t0, 4(s1)
+        sw a0, 4(s1)
     
         # Anda em uma coordenada (2 indices) no vetor centroids
         addi s1, s1, 8
@@ -439,7 +444,7 @@ initializeCentroids:
         bne s0, x0, loop_initCentroids
     
     # pop
-    lw t0, 16(sp)
+    lw ra, 16(sp)
     lw a3, 12(sp)
     lw s2, 8(sp)
     lw s1, 4(sp)
