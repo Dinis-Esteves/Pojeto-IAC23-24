@@ -384,7 +384,7 @@ initializeCentroids:
     sw s1, 4(sp)
     sw s2, 8(sp)
     sw a3, 12(sp)
-    sw ra, 26(sp)
+    sw ra, 16(sp)
     
     # Passa os argumentos para s0 e s1 & inicializa s2 a 32
     add s0, a0, x0
