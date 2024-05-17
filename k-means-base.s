@@ -29,16 +29,16 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-#n_points:    .word 5
-#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+n_points:    .word 5
+points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+#n_points:    .word 30
+#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
@@ -53,12 +53,7 @@ k:           .word 3
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-#clusters:    
-
-# Vetor auxiliar para a função nearest cluster,
-#guarda a distância de um punto aos centroids
-distToClus:    .word 0, 0, 0
-
+clusters:    .word 0,0,1,1,2
 
 #Definicoes de cores a usar no projeto 
 
@@ -76,11 +71,8 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
     #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
-    li a0, 16
-    li a1, 16
     jal cleanScreen
-    jal nearestCluster
-    
+    jal printClusters
     
     
     
@@ -205,23 +197,27 @@ cleanPoints:
     addi sp, sp, 28
     
     jr ra
+    
 ### printClusters
 # Pinta os agrupamentos na LED matrix com a cor correspondente.
 # Argumentos: nenhum
 # Retorno: nenhum
 
 printClusters:
-    # POR IMPLEMENTAR (1a e 2a parte)
-        
-        # guarda no stack
-        addi sp, sp, -4
-        sw ra, 0(sp)
-        
-        # inicia as variaveis
-        lw a2, colors
-        la t0, points
-        li t4, 0    # iterator i
-        lw t1, n_points
+    # guarda no stack
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    # caso k != 1, vai para o printMultipleCLusters
+    lw t0, k
+    lw t1, 1
+    bne t0, t1, printMultipleCLusters
+
+    # inicia as variaveis
+    lw a2, colors
+    la t0, points
+    li t4, 0    # iterator i
+    lw t1, n_points
         
     loop_printClusters:
         # load do x e do y
@@ -243,7 +239,61 @@ printClusters:
         
     jr ra
 
-
+    printMultipleCLusters:
+        
+        # Push 
+        addi sp, sp -20
+        sw s0, 0(sp)
+        sw s1, 4(sp)
+        sw s2, 8(sp)
+        sw t0, 12(sp)
+        sw s3, 16(sp)
+        
+        # Carregar variaveis
+        la s0, points
+        la s1, clusters
+	    la s2, colors
+        lw s3, n_points
+        li t0, 0
+        
+        loop_PMC:
+            
+            lw a0, 0(s0) # Carrega x para o arg do PrintPoint
+            lw a1, 4(s0) # Carrega y para o arg do PrintPoint
+            
+            # Offset para usar no colors
+            lw t1, 0(s1)
+            slli t1, t1, 2
+            
+            # Posição do vetor cores correspondente ao cluster do ponto
+            add t1, t1, s2
+            
+            # cor do ponto
+            lw a2, 0(t1)
+            
+            # pinta o ponto
+            jal printPoint
+            
+            
+            # aumenta iteradores e iterados
+            addi t0, t0, 1
+            addi s1, s1, 4
+            addi s0, s0, 8
+            
+            # Pára caso o iterador fique igual ao vetor points
+            bne t0, s3, loop_PMC
+        
+        # Pop
+        lw s3, 20(sp)
+        lw t0, 16(sp)
+        lw s2, 12(sp)
+        lw s1, 8(sp)
+        lw s0, 4(sp)
+        lw ra, 0(sp)
+        addi sp, sp 24
+	    
+        jr ra
+        
 ### printCentroids
 # Pinta os centroides na LED matrix
 # Nota: deve ser usada a cor preta (black) para todos os centroides
@@ -312,7 +362,7 @@ calculateCentroids:
         
         bne t2, t1, loop_calculateCentroids
         
-    # divide pelo numero de pontos ( aka medias)
+    # divide pelo numero de pontos (aka medias)
     div t5, t5, t1
     div t6, t6, t1
     
