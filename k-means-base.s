@@ -53,7 +53,7 @@ k:           .word 3
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-clusters:    .word 0,0,1,1,2
+clusters:    .word 2,1,0,1,2
 
 #Definicoes de cores a usar no projeto 
 
@@ -280,7 +280,7 @@ printClusters:
             addi s1, s1, 4
             addi s0, s0, 8
             
-            # Pára caso o iterador fique igual ao vetor points
+            # Para caso o iterador fique igual ao vetor points
             bne t0, s3, loop_PMC
         
         # Pop
