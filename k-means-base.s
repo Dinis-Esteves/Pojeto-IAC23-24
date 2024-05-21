@@ -49,7 +49,7 @@ points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 # Valores de centroids, k e L a usar na 2a parte do prejeto:
 centroids:   .word 0,0, 0, 20, 0,10
 k:           .word 3
-#L:           .word 10
+L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
@@ -65,14 +65,17 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 
 
 # Codigo
- 
+
 .text
     # Chama funcao principal da 1a parte do projeto
     #jal mainSingleCluster
     # Descomentar na 2a parte do projeto:
     #jal mainKMeans
     jal cleanScreen
+    jal calculateCentroids
     jal printClusters
+    jal printCentroids
+    #jal printClusters
     
     
     
@@ -210,7 +213,7 @@ printClusters:
     
     # caso k != 1, vai para o printMultipleCLusters
     lw t0, k
-    lw t1, 1
+    li t1, 1
     bne t0, t1, printMultipleCLusters
 
     # inicia as variaveis
@@ -339,7 +342,16 @@ printCentroids:
 # Retorno: nenhum
 
 calculateCentroids:
-    # POR IMPLEMENTAR (1a e 2a parte)
+    
+    # guarda no stack
+    addi sp, sp, -4
+    sw ra, 0(sp)
+    
+    # caso k != 1, vai para o calculateMultipleCLusters
+    lw t0, k
+    lw t1, 1
+    bne t0, t1, calculateMultipleCentroids
+     
     
     # inicia variaveis
     la t0, points
@@ -373,7 +385,93 @@ calculateCentroids:
     
     jr ra
 
-
+    calculateMultipleCentroids:
+        
+        # push
+        addi sp, sp, -48
+        sw s0, 0(sp)
+        sw s1, 4(sp)
+        sw s2, 8(sp)
+        sw s3, 12(sp)
+        sw s4, 16(sp)
+        sw t0, 20(sp)
+        sw t1, 24(sp)
+        sw t2, 28(sp)
+        sw t3, 32(sp)
+        sw t4, 36(sp)
+        sw t5, 40(sp)
+        sw t6, 44(sp)
+        
+        # iniciar variaves
+        # points, clusters, centroids, iterador/es
+        la s1, centroids
+        lw s4, n_points
+        lw s3, k
+        li t0, 0
+        
+        loop_CMC:
+            la s0, points
+            la s2, clusters
+            li t1, 0
+            li t6, 0
+            sub_loop:
+                
+                # caso o ponto não pertença ao cluster atual, passa á frente
+                lw t2, 0(s2)
+                beq t0, t2, update
+                
+                
+                lw t2, 0(s0) # carrega x
+                lw t3, 4(s0) # carrega y
+                
+                # aumenta t6 em 1 (para saber a quantidade de pontos pertencentes ao cluster)
+                addi t6, t6, 1
+                
+                # acrescenta às variaveis de soma
+                add t4, t2, t4
+                add t5, t3, t5
+                
+                # atualiza iteradores
+                update: 
+                    addi t1, t1, 1
+                    addi s0, s0, 8
+                    addi s2, s2, 4
+                
+                # percorre todo o n_points
+                bne t1, s4, sub_loop
+                
+            # obtem a media de x e y
+            div t4, t4, t6
+            div t5, t5, t6
+            
+            # guarda no vetor centroids
+            sw t4, 0(s1)
+            sw t5, 4(s1)
+            
+            # atualiza iteradores/reinicia
+            addi t0, t0, 1
+            addi s1, s1, 8
+            li t6, 0
+            # fará com que o sejam calculados k centroids
+            bne t0, s3, loop_CMC
+            
+            # pop
+            lw ra, 48(sp)
+            lw t6, 44(sp)
+            lw t5, 40(sp)
+            lw t4, 36(sp)
+            lw t3, 32(sp)
+            lw t2, 28(sp)
+            lw t1, 24(sp)
+            lw t0, 20(sp)
+            lw s4, 16(sp)
+            lw s3, 12(sp)
+            lw s2, 8(sp)
+            lw s1, 4(sp)
+            lw s0, 0(sp)
+            addi sp, sp, 52
+            
+            jr ra
 ### mainSingleCluster
 # Funcao principal da 1a parte do projeto.
 # Argumentos: nenhum
