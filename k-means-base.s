@@ -29,9 +29,13 @@
 #points:      .word 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 8,8
 
 #Input B - Cruz
-n_points:    .word 5
-points:     .word 4,2, 5,1, 5,2, 5,3 6,2
+#n_points:    .word 5
+#points:     .word 4,2, 5,1, 5,2, 5,3 6,2
 
+#Input Denis - Teste
+n_points:     .word 6
+points:       .word 5,1 5,3 9,4 9,6 23,12 23,14 
+ 
 #Input C
 #n_points:    .word 23
 #points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
@@ -53,7 +57,7 @@ L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-clusters:    .word 2,1,0,1,2
+clusters:    .word 0, 0, 1, 1, 2, 2
 
 #Definicoes de cores a usar no projeto 
 
@@ -287,12 +291,12 @@ printClusters:
             bne t0, s3, loop_PMC
         
         # Pop
-        lw s3, 20(sp)
-        lw t0, 16(sp)
-        lw s2, 12(sp)
-        lw s1, 8(sp)
-        lw s0, 4(sp)
-        lw ra, 0(sp)
+        lw s3, 16(sp)
+        lw t0, 12(sp)
+        lw s2, 8(sp)
+        lw s1, 4(sp)
+        lw s0, 0(sp)
+        lw ra, 20(sp)
         addi sp, sp 24
 	    
         jr ra
@@ -418,8 +422,7 @@ calculateCentroids:
                 
                 # caso o ponto não pertença ao cluster atual, passa á frente
                 lw t2, 0(s2)
-                beq t0, t2, update
-                
+                bne t0, t2, update
                 
                 lw t2, 0(s0) # carrega x
                 lw t3, 4(s0) # carrega y
@@ -452,6 +455,8 @@ calculateCentroids:
             addi t0, t0, 1
             addi s1, s1, 8
             li t6, 0
+            li t4, 0
+            li t5, 0
             # fará com que o sejam calculados k centroids
             bne t0, s3, loop_CMC
             
