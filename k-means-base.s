@@ -146,59 +146,45 @@ cleanScreen:
 # Retorno: nenhum
 
 cleanPoints:
-    
+
     # push
-    addi sp, sp, -28
-    sw s0, 0(sp)
-    sw s1, 4(sp)
-    sw s2, 8(sp)
-    sw s3, 12(sp)
-    sw t0, 16(sp)
-    sw ra, 20(sp)
-    sw a2, 24(sp)
-    
+    addi sp, sp, -4
+    sw ra, 0(sp)
     
     # inicializar variaveis
-    lw s0, k
-    la s1, centroids
-    lw s2, n_points
-    la s3, points
+    lw t0, k
+    la t1, centroids
+    lw t2, n_points
+    la t3, points
     li a2, white
-    li t0, 0
+    li t4, 0
     
     loop_centroids:
-        lw a0, 0(s1)
-        lw a1, 4(s1)    
+        lw a0, 0(t1)
+        lw a1, 4(t1)    
         
         jal printPoint
         
-        addi t0, t0, 1
-        addi s1, s1, 8
+        addi t4, t4, 1
+        addi t1, t1, 8
         
-        bne s0, t0, loop_centroids
-        li t0, 0
+        bne t0, t4, loop_centroids
+        li t4, 0
         
     loop_points:
-        lw a0, 0(s3)
-        lw a1, 4(s3)    
+        lw a0, 0(t3)
+        lw a1, 4(t3)    
         
         jal printPoint
         
-        addi t0, t0, 1
-        addi s3, s3, 8
+        addi t4, t4, 1
+        addi t3, t3, 8
         
-        bne s2, t0, loop_points
-    
-    lw a2, 24(sp)
-    lw ra, 20(sp)
-    lw t0, 16(sp)
-    lw s3, 12(sp)
-    lw s2, 8(sp)
-    lw s1, 4(sp)
-    lw s0, 0(sp)
-    
-    addi sp, sp, 28
-    
+        bne t2, t4, loop_points
+
+    # pop
+    lw ra, 0(sp)
+    addi sp, sp, 4
     jr ra
     
 ### printClusters
