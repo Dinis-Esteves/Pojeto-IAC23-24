@@ -37,12 +37,12 @@
 #points:       .word 5,1 5,3 9,4 9,6 23,12 23,14 
  
 #Input C
-#n_points:    .word 23
-#points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
+n_points:    .word 23
+points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-n_points:    .word 30
-points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+#n_points:    .word 30
+#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
@@ -231,12 +231,11 @@ printClusters:
     printMultipleCLusters:
         
         # Push 
-        addi sp, sp -20
+        addi sp, sp -16
         sw s0, 0(sp)
         sw s1, 4(sp)
         sw s2, 8(sp)
-        sw t0, 12(sp)
-        sw s3, 16(sp)
+        sw s3, 12(sp)
         
         # Carregar variaveis
         la s0, points
@@ -273,13 +272,12 @@ printClusters:
             bne t0, s3, loop_PMC
         
         # Pop
-        lw s3, 16(sp)
-        lw t0, 12(sp)
+        lw ra, 16(sp)
+        lw s3, 12(sp)
         lw s2, 8(sp)
         lw s1, 4(sp)
         lw s0, 0(sp)
-        lw ra, 20(sp)
-        addi sp, sp 24
+        addi sp, sp 20
 	    
         jr ra
         
@@ -306,8 +304,23 @@ printCentroids:
         lw a0, 0(t0)
         lw a1, 4(t0)
         
+        # guarda as variaveis temporarias utilizadas apos chamada
+        addi sp, sp, -20
+        sw t0, 0(sp)
+        sw t1, 4(sp)
+        sw t2, 8(sp)
+        sw t3, 12(sp)
+        sw t4, 16(sp)
+                
         # printa o ponto
         jal printPoint
+        
+        lw t0, 0(sp)
+        lw t1, 4(sp)
+        lw t2, 8(sp)
+        lw t3, 12(sp)
+        lw t4, 16(sp)
+        addi sp, sp, 20
         
         # atualiza as variaveis
         addi t4, t4, 1
@@ -330,8 +343,6 @@ printCentroids:
 calculateCentroids:
     
     # guarda no stack
-    addi sp, sp, -4
-    sw ra, 0(sp)
     
     # caso k != 1, vai para o calculateMultipleCLusters
     lw t0, k
@@ -374,19 +385,12 @@ calculateCentroids:
     calculateMultipleCentroids:
         
         # push
-        addi sp, sp, -48
+        addi sp, sp, -20
         sw s0, 0(sp)
         sw s1, 4(sp)
         sw s2, 8(sp)
         sw s3, 12(sp)
         sw s4, 16(sp)
-        sw t0, 20(sp)
-        sw t1, 24(sp)
-        sw t2, 28(sp)
-        sw t3, 32(sp)
-        sw t4, 36(sp)
-        sw t5, 40(sp)
-        sw t6, 44(sp)
         
         # iniciar variaves
         # points, clusters, centroids, iterador/es
@@ -400,6 +404,9 @@ calculateCentroids:
             la s2, clusters
             li t1, 0
             li t6, 0
+            li t5, 0
+            li t4, 0
+            
             sub_loop:
                 
                 # caso o ponto não pertença ao cluster atual, passa á frente
@@ -424,11 +431,11 @@ calculateCentroids:
                 
                 # percorre todo o n_points
                 bne t1, s4, sub_loop
-                
+                beq t6, x0, n_divide
             # obtem a media de x e y
             div t4, t4, t6
             div t5, t5, t6
-            
+            n_divide:
             # guarda no vetor centroids
             sw t4, 0(s1)
             sw t5, 4(s1)
@@ -439,24 +446,16 @@ calculateCentroids:
             li t6, 0
             li t4, 0
             li t5, 0
-            # fará com que o sejam calculados k centroids
+            # fará com que sejam calculados k centroids
             bne t0, s3, loop_CMC
             
             # pop
-            lw ra, 48(sp)
-            lw t6, 44(sp)
-            lw t5, 40(sp)
-            lw t4, 36(sp)
-            lw t3, 32(sp)
-            lw t2, 28(sp)
-            lw t1, 24(sp)
-            lw t0, 20(sp)
             lw s4, 16(sp)
             lw s3, 12(sp)
             lw s2, 8(sp)
             lw s1, 4(sp)
             lw s0, 0(sp)
-            addi sp, sp, 52
+            addi sp, sp, 20
             
             jr ra
 ### mainSingleCluster
@@ -513,13 +512,12 @@ mainSingleCluster:
 initializeCentroids:
     
     # push s0, s1 e s2
-    addi sp, sp, -24
+    addi sp, sp, -20
     sw s0, 0(sp)
     sw s1, 4(sp)
     sw s2, 8(sp)
     sw a3, 12(sp)
-    sw t0, 16(sp)
-    sw ra, 20(sp)
+    sw ra, 16(sp)
     
     # Passa os argumentos para s0 e s1 & inicializa s2 a 32
     add s0, a0, x0
@@ -564,6 +562,7 @@ initializeCentroids:
     
         # valor random de y
         rem a0, a0, s2 
+        
         jal abs
   
         # Salva y no vetor centroids
@@ -579,13 +578,12 @@ initializeCentroids:
         bne s0, x0, loop_initCentroids
     
     # pop
-    lw ra, 20(sp)
-    lw t0, 16(sp)
+    lw ra, 16(sp)
     lw a3, 12(sp)
     lw s2, 8(sp)
     lw s1, 4(sp)
     lw s0, 0(sp)
-    addi sp, sp, 24
+    addi sp, sp, 20
     
     jr ra 
 
@@ -605,12 +603,9 @@ is_negative:
 # a0: distance
 
 manhattanDistance:
-    # POR IMPLEMENTAR (2a parte)
-    
+  
     addi sp, sp, -16
     sw ra, 0(sp)
-    sw t0, 4(sp)
-    sw t1, 8(sp)
     
     sub a0, a0, a2
     sub t1, a1, a3
@@ -623,8 +618,6 @@ manhattanDistance:
     
     add a0, a0, t0
     
-    lw t1, 8(sp)
-    lw t0, 4(sp)
     lw ra, 0(sp)
     addi sp, sp, 16
     
@@ -641,14 +634,10 @@ manhattanDistance:
 nearestCluster:
     
     # push
-    addi sp, sp, -28
+    addi sp, sp, -12
     sw ra, 0(sp)
-    sw t0, 4(sp)
-    sw t1, 8(sp)
-    sw t2, 12(sp)
-    sw t3, 16(sp)
-    sw s0, 20(sp)
-    sw s1, 24(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
  
     
     la t0, centroids
@@ -664,7 +653,24 @@ nearestCluster:
         add a1, x0, s1
         lw   a2, 0(t0)    # x do centroid
         lw   a3, 4(t0)    # y do centroid
+        
+        # guardar as temporarias que serão usadas após a chamada
+        addi sp, sp, -20
+        sw t0, 0(sp)
+        sw t1, 4(sp)
+        sw t2, 8(sp)
+        sw t3, 12(sp)
+        sw t4, 16(sp)
+        
         jal manhattanDistance
+        
+        lw t4, 16(sp)
+        lw t3 12(sp)
+        lw t2, 8(sp)
+        lw t1, 4(sp)
+        lw t0, 0(sp)
+        addi sp, sp, 20
+        
         bgt  a0, t2, iterator
         mv   t2, a0       # menor distancia ate ao momento
         mv   t4, t3       # valor de retorno ate ao momento
@@ -677,14 +683,10 @@ nearestCluster:
         mv a0, t4
         
     # pop
-    lw s1, 24(sp)
-    lw s0, 20(sp)
-    lw t3, 16(sp)
-    lw t2, 12(sp)
-    lw t1, 8(sp)
-    lw t0, 4(sp)
+    lw s1, 8(sp)
+    lw s0, 4(sp)
     lw ra, 0(sp)
-    addi sp, sp, 28
+    addi sp, sp, 12
     jr ra
 
 
@@ -695,7 +697,7 @@ nearestCluster:
 
 mainKMeans:  
  
-     #pus
+    #push
     addi sp, sp, -20 
     sw ra, 0(sp)
     sw s0, 4(sp)
