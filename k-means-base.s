@@ -37,12 +37,12 @@
 #points:       .word 5,1 5,3 9,4 9,6 23,12 23,14 
  
 #Input C
-n_points:    .word 23
-points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
+#n_points:    .word 23
+#points: .word 0,0, 0,1, 0,2, 1,0, 1,1, 1,2, 1,3, 2,0, 2,1, 5,3, 6,2, 6,3, 6,4, 7,2, 7,3, 6,8, 6,9, 7,8, 8,7, 8,8, 8,9, 9,7, 9,8
 
 #Input D
-#n_points:    .word 30
-#points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
+n_points:    .word 30
+points:      .word 16,1, 17,2, 18,6, 20,3, 21,1, 17,4, 21,7, 16,4, 21,6, 19,6, 4,24, 6,24, 8,23, 6,26, 6,26, 6,23, 8,25, 7,26, 7,20, 4,21, 4,10, 2,10, 3,11, 2,12, 4,13, 4,9, 4,9, 3,8, 0,10, 4,10
 
 
 
@@ -57,7 +57,7 @@ L:           .word 10
 
 # Abaixo devem ser declarados o vetor clusters (2a parte) e outras estruturas de dados
 # que o grupo considere necessarias para a solucao:
-clusters:    .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0 ,0, 0,0,0,0,0,0,0
+clusters:    .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0 ,0, 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 #Definicoes de cores a usar no projeto 
 
@@ -71,12 +71,7 @@ colors:      .word 0xff0000, 0x00ff00, 0x0000ff  # Cores dos pontos do cluster 0
 # Codigo
 
 .text
-    # Chama funcao principal da 1a parte do projeto
-    #jal mainSingleCluster
-    # Descomentar na 2a parte do projeto:
-    jal mainKMeans
-    #jal printClusters
-    
+    jal mainKMeans    
     
     
     #Termina o programa (chamando chamada sistema)
@@ -140,6 +135,10 @@ cleanScreen:
     
     jr ra
 
+#OPTIMIZATION
+# Esta função é uma versão otimizada do cleanScreen, ela permite limpar
+# o ecrã sem percorrer toda a matriz de pontos, limpando apenas os clu-
+# ters e os centroids.´
 ### cleanPoints
 # Limpa os pontos do cluster e dos centroids
 # Argumentos: nenhum
@@ -242,6 +241,7 @@ printClusters:
         la s1, clusters
 	    la s2, colors
         lw s3, n_points
+        
         li t0, 0
         
         loop_PMC:
@@ -259,9 +259,17 @@ printClusters:
             # cor do ponto
             lw a2, 0(t1)
             
+            # Guarda as variaveis que serão usadas pós chamada
+            addi sp, sp, -8
+            sw t0, 0(sp)
+            sw t1, 4(sp)
+            
             # pinta o ponto
             jal printPoint
             
+            lw t0, 0(sp)
+            lw t1, 4(sp)
+            addi sp, sp, 8
             
             # aumenta iteradores e iterados
             addi t0, t0, 1
