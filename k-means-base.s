@@ -726,14 +726,20 @@ mainKMeans:
     la s1, clusters
     lw s2, n_points
     lw s3, L
+    li s4, 0    # state variable for the cluster vector
+                # 0 if the vector is unchanged since last iteration
+                # 1 otherwise
+                
     loop_mainkmeans:
         # calcula o centroids mais proximo do ponto e guarda o seu index
         lw a0, 0(s0)
         lw a1, 4(s0)
+        lw a6, 0(s1)
         
         jal nearestCluster
         
-        
+        beq a0, a6, 8
+        li s4, 1
         
         sw a0, 0(s1)
         
@@ -741,14 +747,20 @@ mainKMeans:
         addi s2, s2, -1
         addi s1, s1, 4
         addi s0, s0, 8
+        
          
         bne s2, x0, loop_mainkmeans
+    
+    # check if the state variable is equal to 0
+    bne s4, x0, 8
+    li s3, 1
         
     # reset dos iteradores/address
     addi s3, s3, -1
     la s0, points
     la s1, clusters
     lw s2, n_points
+    li s4, 0
         
     jal cleanPoints
     
