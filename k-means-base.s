@@ -135,7 +135,7 @@ cleanScreen:
     
     jr ra
 
-#OPTIMIZATION
+# OPTIMIZATION
 # Esta função é uma versão otimizada do cleanScreen, ela permite limpar
 # o ecrã sem percorrer toda a matriz de pontos, limpando apenas os clu-
 # ters e os centroids.´
@@ -706,12 +706,13 @@ nearestCluster:
 mainKMeans:  
  
     #push
-    addi sp, sp, -20 
+    addi sp, sp, -24 
     sw ra, 0(sp)
     sw s0, 4(sp)
     sw s1, 8(sp)
     sw s2, 12(sp)
     sw s3, 16(sp)
+    sw s4, 20(sp)
     
     # limpa o ecrã
     jal cleanScreen
@@ -780,6 +781,7 @@ mainKMeans:
     lw s1, 8(sp)
     lw s2, 12(sp)
     lw s3, 16(sp)
-    addi sp, sp, 20
+    lw s4, 20(sp)
+    addi sp, sp, 24
     
     jr ra
